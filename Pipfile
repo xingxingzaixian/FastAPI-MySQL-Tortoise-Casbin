@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "0.63.0"
+uvicorn = "0.13.4"
+tortoise-orm = "0.17.2"
+aiomysql = "0.0.21"
+loguru = "0.5.3"
+python-jose = "3.2.0"
+passlib = "1.7.4"
+email-validator = "1.1.2"
+casbin = "1.0.4"
+python-multipart = "0.0.5"
+bcrypt = "3.2.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
