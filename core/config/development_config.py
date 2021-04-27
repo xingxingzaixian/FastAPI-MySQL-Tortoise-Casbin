@@ -52,7 +52,9 @@ class Settings(BaseSettings):
                     'auth.casbin_tortoise_adapter'
                 ]
             }
-        }
+        },
+        'use_tz': False,
+        'timezone': 'UTC'
     }
 
 

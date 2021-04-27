@@ -19,7 +19,7 @@ async def add_authority(
         authority_info: AuthCreate
 ):
     e = get_casbin()
-    res = await e.add_policy(request.state.user.username, authority_info.obj, authority_info.act)
+    res = e.add_policy(request.state.user.username, authority_info.obj, authority_info.act)
     if res:
         return response_code.resp_200()
     else:
@@ -32,7 +32,7 @@ async def del_authority(
         authority_info: AuthCreate
 ):
     e = get_casbin()
-    res = await e.remove_policy(request.state.user.username, authority_info.obj, authority_info.act)
+    res = e.remove_policy(request.state.user.username, authority_info.obj, authority_info.act)
     if res:
         return response_code.resp_200()
     else:

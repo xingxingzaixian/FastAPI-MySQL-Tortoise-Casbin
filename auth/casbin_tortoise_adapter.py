@@ -4,12 +4,13 @@
 @create: 2021/4/23
 @description: 重载casbin适配器，使用tortoise-orm作为表处理
 """
+import asyncio
+
 from casbin import persist
 from tortoise import fields, models
 
 
 class CasbinRule(models.Model):
-    id = fields.IntField(pk=True)
     ptype = fields.CharField(max_length=255)
     v0 = fields.CharField(max_length=255)
     v1 = fields.CharField(max_length=255)
@@ -27,7 +28,7 @@ class CasbinRule(models.Model):
         return ', '.join(arr)
 
     def __repr__(self):
-        return '<CasbinRule {}: "{}">'.format(self.id, str(self))
+        return '<CasbinRule {}: "{}">'.format(self.pk, str(self))
 
     class Meta:
         table = 'casbin_rule'
@@ -52,7 +53,19 @@ class Adapter(persist.Adapter):
         self._db_class = db_class
         self._filtered = filtered
 
-    async def load_policy(self, model):
+    def load_policy(self, model):
+        """
+        数据库的操作是由异步库 Tortoise 执行的，因此在同步函数中需要通过此方式运行
+        :param model:
+        :return:
+        """
+        # 获取当前正在运行的时间循环，如果没有就创建一个
+        loop = asyncio.get_event_loop()
+
+        # 将一个coroutine协程对象提交给指定的事件循环
+        asyncio.run_coroutine_threadsafe(self._load_policy(model), loop)
+
+    async def _load_policy(self, model):
         """loads all policy rules from the storage."""
         lines = await self._db_class.all()
         for line in lines:
@@ -61,7 +74,11 @@ class Adapter(persist.Adapter):
     def is_filtered(self):
         return self._filtered
 
-    async def load_filtered_policy(self, model, filter) -> None:
+    def load_filtered_policy(self, model, filter) -> None:
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(self._load_filtered_policy(model, filter), loop)
+
+    async def _load_filtered_policy(self, model, filter) -> None:
         """loads all policy rules from the storage."""
         filters = await self.filter_query(self._db_class, filter)
         filters = await filters.all()
@@ -100,9 +117,13 @@ class Adapter(persist.Adapter):
             setattr(line, "v{}".format(i), v)
         await line.save()
 
-    async def save_policy(self, model):
+    def save_policy(self, model):
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(self._save_policy(model), loop)
+
+    async def _save_policy(self, model):
         """saves all policy rules to the storage."""
-        await self._db_class.delete()
+        await self._db_class.all().delete()
         for sec in ["p", "g"]:
             if sec not in model.model.keys():
                 continue
@@ -111,11 +132,19 @@ class Adapter(persist.Adapter):
                     await self._save_policy_line(ptype, rule)
         return True
 
-    async def add_policy(self, sec, ptype, rule):
+    def add_policy(self, sec, ptype, rule):
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(self._add_policy(sec, ptype, rule), loop)
+
+    async def _add_policy(self, sec, ptype, rule):
         """adds a policy rule to the storage."""
         await self._save_policy_line(ptype, rule)
 
-    async def remove_policy(self, sec, ptype, rule):
+    def remove_policy(self, sec, ptype, rule):
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(self._remove_policy(sec, ptype, rule), loop)
+
+    async def _remove_policy(self, sec, ptype, rule):
         """removes a policy rule from the storage."""
         query = await self._db_class.filter(self._db_class.ptype == ptype)
         for i, v in enumerate(rule):
@@ -124,7 +153,11 @@ class Adapter(persist.Adapter):
 
         return True if r > 0 else False
 
-    async def remove_filtered_policy(self, sec, ptype, field_index, *field_values):
+    def remove_filtered_policy(self, sec, ptype, field_index, *field_values):
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(self._remove_filtered_policy(sec, ptype, field_index, *field_values), loop)
+
+    async def _remove_filtered_policy(self, sec, ptype, field_index, *field_values):
         """removes policy rules that match the filter from the storage.
         This is part of the Auto-Save feature.
         """

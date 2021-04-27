@@ -176,8 +176,8 @@ def register_init(app: FastAPI) -> None:
         register_tortoise(
             app,
             config=settings.DATABASE_CONFIG,
-            modules=settings.DATABASE_CONFIG.get("apps").get("models"),
-            generate_schemas=False,  # True 表示连接数据库的时候同步创建表
+            # modules=settings.DATABASE_CONFIG.get("apps").get("models"),
+            generate_schemas=True,  # True 表示连接数据库的时候同步创建表
             add_exception_handlers=True,
         )
         logger.info("start server and register_tortoise")
