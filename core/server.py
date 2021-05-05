@@ -1,14 +1,14 @@
 import traceback
 
-from fastapi import FastAPI, Request, Depends
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request, Depends, status
+from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError, ValidationError
 from tortoise.contrib.fastapi import register_tortoise
 
 from .router import api_router
 from .middleware import register_hook
-from utils import custom_exc, response_code
+from utils import custom_exc
 from utils.logger import logger
 from core.config import settings
 from auth.auth import jwt_authentication
@@ -100,7 +100,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"token未知用户\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return response_code.resp_4002(message=exc.err_desc)
+        return JSONResponse(status_code=418, content={'message': 'Token 已过期，请重新登录', 'desc': exc.err_desc})
 
     @app.exception_handler(custom_exc.TokenAuthError)
     async def user_token_exception_handler(request: Request, exc: custom_exc.TokenAuthError):
@@ -112,7 +112,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(f"用户认证异常\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
 
-        return response_code.resp_4003(message=exc.err_desc)
+        return JSONResponse(status_code=418, content={'message': '用户认证异常，请重新登录', 'desc': exc.err_desc})
 
     @app.exception_handler(custom_exc.AuthenticationError)
     async def user_not_found_exception_handler(request: Request, exc: custom_exc.AuthenticationError):
@@ -123,7 +123,7 @@ def register_exception(app: FastAPI) -> None:
         :return:
         """
         logger.error(f"用户权限不足 \nURL:{request.method}{request.url}")
-        return response_code.resp_4003(message=exc.err_desc)
+        return JSONResponse(status_code=418, content={'message': '权限不足', 'desc': exc.err_desc})
 
     @app.exception_handler(ValidationError)
     async def inner_validation_exception_handler(request: Request, exc: ValidationError):
@@ -135,7 +135,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"内部参数验证错误\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return response_code.resp_5002(message=exc.errors())
+        return JSONResponse(status_code=418, content={'message': '内部参数校验失败', 'desc': exc.errors()})
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -147,8 +147,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"请求参数格式错误\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        # return response_code.resp_4001(message='; '.join([f"{e['loc'][1]}: {e['msg']}" for e in exc.errors()]))
-        return response_code.resp_4001(message=exc.errors())
+        return JSONResponse(status_code=418, content={'message': '请求参数校验异常', 'desc': exc.errors()})
 
     # 捕获全部异常
     @app.exception_handler(Exception)
@@ -160,7 +159,7 @@ def register_exception(app: FastAPI) -> None:
         :return:
         """
         logger.error(f"全局异常\n{request.method}URL:{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return response_code.resp_500()
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={'message': '服务器异常'})
 
 
 def register_init(app: FastAPI) -> None:

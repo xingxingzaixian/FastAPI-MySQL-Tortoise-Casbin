@@ -11,7 +11,6 @@ from core.config import settings
 from utils import logger
 from utils.utils import create_access_token, verify_password
 from auth.auth_casbin import Authority
-from .model import UserModel
 
 router = APIRouter()
 
@@ -59,6 +58,7 @@ async def register(user: schema.UserCreate):
     name="获取当前用户信息",
     response_model=schema.UserOut,
     response_model_exclude_unset=True,
-    dependencies=[Depends(Authority('user,check'))])
+    dependencies=[Depends(Authority('user,check'))]
+)
 async def get_user_info(request: Request):
     return request.state.user

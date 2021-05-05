@@ -14,7 +14,7 @@ class TblUser(TimestampMixin, AbstractBaseModel):
     email = fields.CharField(max_length=64, unique=True, null=True)
     password_hash = fields.CharField(max_length=128, null=False)
     avatar = fields.CharField(max_length=256, null=True)
-    is_active = fields.BooleanField(null=True, default=False, description="邮箱是否激活 0=未激活 1=激活")
+    role = fields.CharField(max_length=32, default='guest', description='普通用户')
 
     class Meta:
         table = "tbl_user"

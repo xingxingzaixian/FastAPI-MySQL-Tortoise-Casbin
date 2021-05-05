@@ -6,13 +6,13 @@ from auth import casbin_tortoise_adapter
 from utils.custom_exc import AuthenticationError
 
 
-def get_casbin() -> casbin.Enforcer:
+def get_casbin() -> casbin.SyncedEnforcer:
     """
     获取 casbin 权限认证对象
     :return:
     """
     adapter = casbin_tortoise_adapter.Adapter()
-    e = casbin.Enforcer(settings.CASBIN_MODEL_PATH, adapter)
+    e = casbin.SyncedEnforcer(settings.CASBIN_MODEL_PATH, adapter)
     return e
 
 
@@ -23,13 +23,15 @@ class Authority:
         """
         self.policy = policy
 
-    def __call__(self, request: Request):
+    async def __call__(self, request: Request):
         """
         超级管理员不需要进行权限认证
         :param request:
         :return:
         """
-        sub = request.state.user.username
+
+        # 超级用户拥有所有权限
+        sub = request.state.user.role
         if settings.SUPER_USER and sub == settings.SUPER_USER:
             return
 
