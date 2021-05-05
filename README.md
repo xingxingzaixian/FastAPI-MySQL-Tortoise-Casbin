@@ -37,6 +37,7 @@ async def jwt_authentication(
     ....
 ```
 - 全局登录认证（除以上接口外，其余接口均进行登录认证）
+
 登录认证成功后, request.state 会添加一个 user 属性，在所有地方可以通过 request.state.user 获取当前用户信息 
 ```python
 app = FastAPI(
@@ -50,6 +51,7 @@ app = FastAPI(
 ```
 全局进行 Depends(jwt_authentication) 依赖注入
 - 接口权限认证
+
 首先通过 auth/add 和 auth/del 接口进行权限配置
 ```python
 @router.get(
@@ -63,6 +65,7 @@ app = FastAPI(
 ```
 在接口上添加 Depends(Authority('user,check')) 依赖注入来判断权限
 - 操作权限认证
+
 在接口中进行特殊权限认证，只要使用check_authority函数判断即可，如果无权限会抛出异常
 ```python
 await check_authority(f'{request.state.user.username},auth,add')
@@ -72,6 +75,7 @@ await check_authority(f'{request.state.user.username},auth,add')
 配置文件：core/config/development_config.py 和 production_config.py
 
 - 修改 API 文档默认地址
+
 为了通过权限认证，将 API 文档地址修改为包含 openapi 的 URL
 ```python
 # 文档地址 默认为docs
@@ -83,6 +87,7 @@ REDOC_URL: Optional[str] = "/openapi/redoc"
 ```
 
 - 超级管理员
+
 设置用户角色为 super 的用户为超级管理员
 ```python
 SUPER_USER: str = 'super'
@@ -109,7 +114,13 @@ DATABASE_CONFIG: dict = {
 ```
 
 ## 运行
-运行采用 uvicorn
 ```shell script
+# 进入项目目录
+pipenv install
+
+# 进入虚拟环境
+pipenv shell
+
+# 运行服务器
 python run.py
 ```
