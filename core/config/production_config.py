@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from pydantic import BaseSettings
 
@@ -8,8 +9,14 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # 项目文档
-    TITLE: str = "FastAPI+MySQL项目生成"
-    DESCRIPTION: str = "更多FastAPI知识，请关注我的个人网站 https://www.charmcode.cn/"
+    TITLE: str = "FastAPI+MySQL+Tortoise-orm项目生成"
+    DESCRIPTION: str = "FastAPI 基于 Tortoise-orm 实现的大型项目框架"
+    # 文档地址 默认为docs
+    DOCS_URL: str = "/openapi/docs"
+    # 文档关联请求数据接口
+    OPENAPI_URL: str = "/openapi/openapi.json"
+    # redoc 文档
+    REDOC_URL: Optional[str] = "/openapi/redoc"
 
     # token过期时间 分钟
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
@@ -29,6 +36,9 @@ class Settings(BaseSettings):
     # 超级管理员
     SUPER_USER: str = 'super'
 
+    # 异常请求返回码
+    HTTP_418_EXCEPT = 418
+
     # 数据库配置
     DATABASE_CONFIG: dict = {
         'connections': {
@@ -40,10 +50,13 @@ class Settings(BaseSettings):
                 # 设置key值“default”的数据库连接
                 'default_connection': 'default',
                 'models': [
-                    'apps.'
+                    'apps.user.model',
+                    'auth.casbin_tortoise_adapter'
                 ]
             }
-        }
+        },
+        'use_tz': False,
+        'timezone': 'UTC'
     }
 
 

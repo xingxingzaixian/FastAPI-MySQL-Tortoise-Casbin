@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # 超级管理员
     SUPER_USER: str = 'super'
 
+    # 异常请求返回码
+    HTTP_418_EXCEPT = 418
+    
     # 数据库配置
     DATABASE_CONFIG: dict = {
         'connections': {

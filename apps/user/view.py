@@ -9,7 +9,8 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from . import crud, schema
 from core.config import settings
 from utils import logger
-from utils.utils import create_access_token, verify_password
+from utils.utils import verify_password
+from auth.auth import create_access_token
 from auth.auth_casbin import Authority
 
 router = APIRouter()

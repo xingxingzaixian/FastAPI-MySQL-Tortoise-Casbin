@@ -4,51 +4,75 @@
 @create: 2021/4/23
 @description: 
 """
-import asyncio
+from typing import List
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 
-from auth.auth_casbin import get_casbin, Authority
+from auth.auth_casbin import get_casbin, Authority, check_authority
 from .schema import AuthCreate
+from apps.user.crud import get_user_by_name
+from core.config import settings
 
 router = APIRouter()
 
 
 @router.post(
-    "/add/auth",
+    "/add",
     summary="添加访问权限",
     description="添加访问权限",
     dependencies=[Depends(Authority('auth,add'))]
 )
 async def add_authority(
-        request: Request,
         authority_info: AuthCreate
 ):
-    e = get_casbin()
-    await asyncio.sleep(0.1)
-    res = e.add_policy(request.state.user.username, authority_info.obj, authority_info.act)
+    user = await get_user_by_name(authority_info.sub)
+    if not user:
+        raise HTTPException(status_code=settings.HTTP_418_EXCEPT, detail='添加权限的用户不存在，请检查用户名')
+
+    e = await get_casbin()
+    res = e.add_policy(authority_info.sub, authority_info.obj, authority_info.act)
     if res:
-        return {'message': '权限添加成功', 'auth': f'{request.state.user.username},{authority_info.obj},{authority_info.act}'}
+        return {'message': '权限添加成功', 'auth': f'{authority_info.sub},{authority_info.obj},{authority_info.act}'}
     else:
         return {'message': '添加失败，权限已存在'}
 
 
 @router.post(
-    "/del/auth",
+    "/del",
     summary="删除访问权限",
     description='删除用户权限',
     dependencies=[Depends(Authority('auth,remove'))]
 )
 async def del_authority(
-        request: Request,
         authority_info: AuthCreate
 ):
-    e = get_casbin()
-
-    # 异步执行时，为了保证某些程序执行的顺序，这里加上主动协程切换
-    await asyncio.sleep(0.1)
-    res = e.remove_policy(request.state.user.username, authority_info.obj, authority_info.act)
+    e = await get_casbin()
+    res = e.remove_policy(authority_info.sub, authority_info.obj, authority_info.act)
     if res:
         return {'message': '权限已删除'}
     else:
         return {'message': '删除失败，权限不存在'}
+
+
+@router.get(
+    '/list',
+    summary='获取所有权限列表',
+    description='获取所有权限列表',
+    response_model=List[List]
+)
+async def get_authority_list():
+    e = await get_casbin()
+    result = e.get_policy()
+    return result
+
+
+@router.get(
+    '/permission',
+    summary='获取权限列表',
+    description='获取权限列表',
+    response_model=List
+)
+async def get_authority(request: Request):
+    e = await get_casbin()
+    result = e.get_filtered_policy(0, request.state.user.username)
+    return result

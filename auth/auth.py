@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from jose import jwt
 from fastapi import Request, Header
 from starlette.authentication import AuthenticationError
@@ -6,6 +8,28 @@ from pydantic import ValidationError
 from core.config import settings
 from utils import custom_exc
 from apps.user.crud import get_user_by_name
+
+
+def create_access_token(
+        subject: str,
+        expires_delta: timedelta = None
+) -> str:
+    """
+    生成token
+    :param subject:需要存储到token的数据(注意token里面的数据，属于公开的)
+    :param authority_id: 权限id(用于权限管理)
+    :param expires_delta:
+    :return:
+    """
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    to_encode = {"exp": expire, "sub": subject}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
 
 
 async def jwt_authentication(

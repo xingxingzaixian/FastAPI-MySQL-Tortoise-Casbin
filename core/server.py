@@ -100,7 +100,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"token未知用户\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=418, content={'message': 'Token 已过期，请重新登录', 'desc': exc.err_desc})
+        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': 'Token 已过期，请重新登录', 'desc': exc.err_desc})
 
     @app.exception_handler(custom_exc.TokenAuthError)
     async def user_token_exception_handler(request: Request, exc: custom_exc.TokenAuthError):
@@ -112,7 +112,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(f"用户认证异常\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
 
-        return JSONResponse(status_code=418, content={'message': '用户认证异常，请重新登录', 'desc': exc.err_desc})
+        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '用户认证异常，请重新登录', 'desc': exc.err_desc})
 
     @app.exception_handler(custom_exc.AuthenticationError)
     async def user_not_found_exception_handler(request: Request, exc: custom_exc.AuthenticationError):
@@ -123,7 +123,7 @@ def register_exception(app: FastAPI) -> None:
         :return:
         """
         logger.error(f"用户权限不足 \nURL:{request.method}{request.url}")
-        return JSONResponse(status_code=418, content={'message': '权限不足', 'desc': exc.err_desc})
+        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '权限不足', 'desc': exc.err_desc})
 
     @app.exception_handler(ValidationError)
     async def inner_validation_exception_handler(request: Request, exc: ValidationError):
@@ -135,7 +135,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"内部参数验证错误\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=418, content={'message': '内部参数校验失败', 'desc': exc.errors()})
+        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '内部参数校验失败', 'desc': exc.errors()})
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -147,7 +147,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"请求参数格式错误\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=418, content={'message': '请求参数校验异常', 'desc': exc.errors()})
+        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '请求参数校验异常', 'desc': exc.errors()})
 
     # 捕获全部异常
     @app.exception_handler(Exception)

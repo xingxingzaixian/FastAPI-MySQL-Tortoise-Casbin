@@ -67,9 +67,12 @@ class Adapter(persist.Adapter):
 
     async def _load_policy(self, model):
         """loads all policy rules from the storage."""
-        lines = await self._db_class.all()
-        for line in lines:
-            persist.load_policy_line(str(line), model)
+        try:
+            lines = await self._db_class.all()
+            for line in lines:
+                persist.load_policy_line(str(line), model)
+        except Exception as e:
+            print(e)
 
     def is_filtered(self):
         return self._filtered
