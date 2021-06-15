@@ -28,10 +28,6 @@ def create_app() -> FastAPI:
         dependencies=[Depends(jwt_authentication)]
     )
 
-    @app.get('/', include_in_schema=False)
-    async def index():
-        return RedirectResponse(url=settings.DOCS_URL)
-
     # 跨域设置
     register_cors(app)
 

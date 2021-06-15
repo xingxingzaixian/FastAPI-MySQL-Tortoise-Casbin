@@ -34,7 +34,7 @@ def create_access_token(
 
 async def jwt_authentication(
         request: Request,
-        x_token: str = Header(
+        access_token: str = Header(
             None,
             title='登录Token',
             description='登录、注册及开放API不需要此参数'
@@ -45,17 +45,18 @@ async def jwt_authentication(
             :param request:
             :return:
             """
-    if 'openapi' in request.url.path.lower() or \
-            'login' in request.url.path.lower() or \
-            'register' in request.url.path.lower():
-        return None
+    for url, op in settings.NO_VERIFY_URL.items():
+        if op == 'eq' and url == request.url.path.lower():
+            return None
+        elif op == 'in' and url in request.url.path.lower():
+            return None
 
-    if x_token is None:
+    if access_token is None:
         raise custom_exc.TokenAuthError()
 
     try:
         playload = jwt.decode(
-            x_token,
+            access_token,
             settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
     except jwt.ExpiredSignatureError:

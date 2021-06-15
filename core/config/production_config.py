@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     DATABASE_CONFIG: dict = {
         'connections': {
             # Dict format for connection
-            'default': 'mysql://root:123456@127.0.0.1:3306/testdb'
+            'default': 'mysql://root:root@192.168.0.143:3306/testdb'
         },
         'apps': {
             'models': {
@@ -56,7 +56,15 @@ class Settings(BaseSettings):
             }
         },
         'use_tz': False,
-        'timezone': 'UTC'
+        'timezone': 'Asia/Shanghai'
+    }
+
+    # 不需要登录认证的 API
+    NO_VERIFY_URL = {
+        "/": "eq",  # 根目录
+        "openapi": "in",  # 开发 API
+        "/user/login": "eq",  # 登录
+        "/user/register": "eq"  # 注册
     }
 
 
