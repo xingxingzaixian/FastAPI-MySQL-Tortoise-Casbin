@@ -7,69 +7,14 @@ fastapi-mysql-generator](https://github.com/CoderCharm/fastapi-mysql-generator)
 - [FastAPI-demo](https://github.com/FutureSenzhong/FastAPI-demo)
 
 ## 功能
-- JWT token 认证。
+PS: 此分支去掉了用户管理和权限认证，主要是为快速开发通用功能使用
 - 使用 Tortoise-orm models(MySql).
-- 基于 casbin 的权限验证
 - loguru 日志模块使用
+- 支持 WebSocket 功能
+
 
 ## 项目文件组织
 
-## 权限控制
-- 登录、注册及路由中含有openapi的接口不进行登录和权限认证
-```python
-async def jwt_authentication(
-        request: Request,
-        x_token: str = Header(
-            None,
-            title='登录Token',
-            description='登录、注册及开放API不需要此参数'
-        )
-):
-    """
-            除了开放API、登录、注册以外，其他均需要认证
-            :param request:
-            :return:
-            """
-    if 'openapi' in request.url.path.lower() or \
-            'login' in request.url.path.lower() or \
-            'register' in request.url.path.lower():
-        return None
-    ....
-```
-- 全局登录认证（除以上接口外，其余接口均进行登录认证）
-
-登录认证成功后, request.state 会添加一个 user 属性，在所有地方可以通过 request.state.user 获取当前用户信息 
-```python
-app = FastAPI(
-        debug=settings.DEBUG,
-        title=settings.TITLE,
-        description=settings.DESCRIPTION,
-        docs_url=settings.DOCS_URL,
-        redoc_url=settings.REDOC_URL,
-        dependencies=[Depends(jwt_authentication)]
-    )
-```
-全局进行 Depends(jwt_authentication) 依赖注入
-- 接口权限认证
-
-首先通过 auth/add 和 auth/del 接口进行权限配置
-```python
-@router.get(
-    "/info",
-    summary="获取当前用户信息",
-    name="获取当前用户信息",
-    response_model=schema.UserOut,
-    response_model_exclude_unset=True,
-    dependencies=[Depends(Authority('user,check'))]
-)
-```
-在接口上添加 Depends(Authority('user,check')) 依赖注入来判断权限
-- 操作权限认证
-
-在接口中进行特殊权限认证，只要使用check_authority函数判断即可，如果无权限会抛出异常
-```python
-await check_authority(f'{request.state.user.username},auth,add')
-```
 
 ## 配置
 配置文件：core/config/development_config.py 和 production_config.py
@@ -106,7 +51,6 @@ DATABASE_CONFIG: dict = {
             # 设置key值“default”的数据库连接
             'default_connection': 'default',
             'models': [
-                'apps.'
             ]
         }
     }

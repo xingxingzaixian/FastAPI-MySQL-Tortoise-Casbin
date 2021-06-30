@@ -11,7 +11,6 @@ from .middleware import register_hook
 from utils import custom_exc
 from utils.logger import logger
 from core.config import settings
-from auth.auth import jwt_authentication
 
 
 def create_app() -> FastAPI:
@@ -24,8 +23,7 @@ def create_app() -> FastAPI:
         title=settings.TITLE,
         description=settings.DESCRIPTION,
         docs_url=settings.DOCS_URL,
-        redoc_url=settings.REDOC_URL,
-        dependencies=[Depends(jwt_authentication)]
+        redoc_url=settings.REDOC_URL
     )
 
     # 跨域设置

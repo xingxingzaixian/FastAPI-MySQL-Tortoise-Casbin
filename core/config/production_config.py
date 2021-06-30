@@ -30,9 +30,6 @@ class Settings(BaseSettings):
     # 项目根路径
     BASE_PATH: str = os.path.dirname(os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
 
-    # RBAC 权限认证配置路径
-    CASBIN_MODEL_PATH = os.path.join(BASE_PATH, 'core/config/rbac_model.conf')
-
     # 超级管理员
     SUPER_USER: str = 'super'
 
@@ -43,15 +40,13 @@ class Settings(BaseSettings):
     DATABASE_CONFIG: dict = {
         'connections': {
             # Dict format for connection
-            'default': 'mysql://root:root@192.168.0.143:3306/testdb'
+            'default': 'mysql://root:123456@127.0.0.1:3306/testdb'
         },
         'apps': {
             'models': {
                 # 设置key值“default”的数据库连接
                 'default_connection': 'default',
                 'models': [
-                    'apps.user.model',
-                    'auth.casbin_tortoise_adapter'
                 ]
             }
         },
@@ -61,10 +56,11 @@ class Settings(BaseSettings):
 
     # 不需要登录认证的 API
     NO_VERIFY_URL = {
-        "/": "eq",  # 根目录
-        "openapi": "in",  # 开发 API
-        "/user/login": "eq",  # 登录
-        "/user/register": "eq"  # 注册
+        "/": "eq",                  # 根目录
+        "openapi": "in",            # 开发 API
+        "/user/login": "eq",        # 登录
+        "/user/register": "eq",     # 注册
+        "ws": "in"                  # ws 服务不需要登录
     }
 
 

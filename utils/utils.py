@@ -1,9 +1,6 @@
 import uuid
-from datetime import datetime, timedelta
-from passlib.context import CryptContext
 
-from jose import jwt
-from core.config import settings
+from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
