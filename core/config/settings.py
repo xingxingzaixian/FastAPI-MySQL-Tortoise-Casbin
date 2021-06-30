@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = 'aeq)s(*&(&)()WEQasd8**&^9asda_asdasd*&*&^+_sda'
 
     # 项目根路径
-    BASE_PATH: str = os.path.dirname(os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
+    BASE_PATH: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     # 超级管理员
     SUPER_USER: str = 'super'
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
                 ]
             }
         },
-        "routers": ["core.db_router.Router"],
+        "routers": ["db_router.Router"],
         'use_tz': False,
         'timezone': 'Asia/Shanghai'
     }
