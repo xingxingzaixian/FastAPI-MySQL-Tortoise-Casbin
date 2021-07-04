@@ -9,6 +9,7 @@ from tortoise.contrib.fastapi import register_tortoise
 from .router import api_router
 from .middleware import register_hook
 from utils import custom_exc
+from utils.response_code import ResultResponse, HttpStatus
 from utils.logger import logger
 from core.config import settings
 from auth.auth import jwt_authentication
@@ -96,7 +97,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"token未知用户\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': 'Token 已过期，请重新登录', 'desc': exc.err_desc})
+        return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_420_TOKEN_EXCEPT, message='Token 已过期，请重新登录').dict())
 
     @app.exception_handler(custom_exc.TokenAuthError)
     async def user_token_exception_handler(request: Request, exc: custom_exc.TokenAuthError):
@@ -107,8 +108,7 @@ def register_exception(app: FastAPI) -> None:
         :return:
         """
         logger.error(f"用户认证异常\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-
-        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '用户认证异常，请重新登录', 'desc': exc.err_desc})
+        return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_418_AUTH_EXCEPT, message='用户认证异常，请重新登录').dict())
 
     @app.exception_handler(custom_exc.AuthenticationError)
     async def user_not_found_exception_handler(request: Request, exc: custom_exc.AuthenticationError):
@@ -119,7 +119,7 @@ def register_exception(app: FastAPI) -> None:
         :return:
         """
         logger.error(f"用户权限不足 \nURL:{request.method}{request.url}")
-        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '权限不足', 'desc': exc.err_desc})
+        return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_425_AUTHENTICATION_EXCEPT, message='用户权限不足').dict())
 
     @app.exception_handler(ValidationError)
     async def inner_validation_exception_handler(request: Request, exc: ValidationError):
@@ -131,7 +131,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"内部参数验证错误\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '内部参数校验失败', 'desc': exc.errors()})
+        return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_421_INNER_PARAM_EXCEPT, message='内部参数校验失败').dict())
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -143,7 +143,7 @@ def register_exception(app: FastAPI) -> None:
         """
         logger.error(
             f"请求参数格式错误\nURL:{request.method}{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=settings.HTTP_418_EXCEPT, content={'message': '请求参数校验异常', 'desc': exc.errors()})
+        return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_422_QUERY_PARAM_EXCEPT, message='请求参数校验异常').dict())
 
     # 捕获全部异常
     @app.exception_handler(Exception)
@@ -155,7 +155,7 @@ def register_exception(app: FastAPI) -> None:
         :return:
         """
         logger.error(f"全局异常\n{request.method}URL:{request.url}\nHeaders:{request.headers}\n{traceback.format_exc()}")
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={'message': '服务器异常'})
+        return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_500_INTERNAL_SERVER_ERROR, message='服务器异常').dict())
 
 
 def register_init(app: FastAPI) -> None:
@@ -171,7 +171,6 @@ def register_init(app: FastAPI) -> None:
         register_tortoise(
             app,
             config=settings.DATABASE_CONFIG,
-            # modules=settings.DATABASE_CONFIG.get("apps").get("models"),
             generate_schemas=True,  # True 表示连接数据库的时候同步创建表
             add_exception_handlers=True,
         )

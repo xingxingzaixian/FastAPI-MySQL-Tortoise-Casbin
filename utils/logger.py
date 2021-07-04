@@ -21,9 +21,9 @@ log_path_warning = os.path.join(log_path, f'{time.strftime("%Y-%m-%d")}_warning.
 log_path_error = os.path.join(log_path, f'{time.strftime("%Y-%m-%d")}_error.log')
 
 # 日志简单配置 文件区分不同级别的日志
-logger.add(log_path_info, rotation="500 MB", encoding='utf-8', enqueue=True, level='INFO')
-logger.add(log_path_warning, rotation="500 MB", encoding='utf-8', enqueue=True, level='WARNING')
-logger.add(log_path_error, rotation="500 MB", encoding='utf-8', enqueue=True, level='ERROR')
+logger.add(log_path_info, rotation="50 MB", encoding='utf-8', enqueue=True, level='INFO')
+logger.add(log_path_warning, rotation="50 MB", encoding='utf-8', enqueue=True, level='WARNING')
+logger.add(log_path_error, rotation="50 MB", encoding='utf-8', enqueue=True, level='ERROR')
 
 
 __all__ = ["logger"]

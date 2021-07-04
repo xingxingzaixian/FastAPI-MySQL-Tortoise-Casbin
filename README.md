@@ -1,3 +1,11 @@
+# 更新记录
+### 2021-07-04
+1. 增加 settings.py 配置文件，将通用配置写入，开发/发布环境各自单独配置
+2. 修复权限验证 BUG
+3. 增加 WebSocket 功能
+4. 增加多数据库配置功能
+5. 增加通用请求返回模板 ResultResponse
+
 # FastAPI+MySQL+Tortoise-orm项目模板
 ## 简介
 使用FastAPI + MySql + Tortoise-orm 作为主要数据库操作,项目结构参考:
@@ -11,6 +19,7 @@ fastapi-mysql-generator](https://github.com/CoderCharm/fastapi-mysql-generator)
 - 使用 Tortoise-orm models(MySql).
 - 基于 casbin 的权限验证
 - loguru 日志模块使用
+- 增加 WebSocket 功能
 
 ## 项目文件组织
 
@@ -30,10 +39,11 @@ async def jwt_authentication(
             :param request:
             :return:
             """
-    if 'openapi' in request.url.path.lower() or \
-            'login' in request.url.path.lower() or \
-            'register' in request.url.path.lower():
-        return None
+    for url, op in settings.NO_VERIFY_URL.items():
+        if op == 'eq' and url == request.url.path.lower():
+            return None
+        elif op == 'in' and url in request.url.path.lower():
+            return None
     ....
 ```
 - 全局登录认证（除以上接口外，其余接口均进行登录认证）
@@ -93,24 +103,40 @@ REDOC_URL: Optional[str] = "/openapi/redoc"
 SUPER_USER: str = 'super'
 ```
 
-### 配置数据库
+### 多配置数据库
 ```python
+# settings.py
+DATABASE_CONNECTS = {
+        'default': 'mysql://root:123456@127.0.0.1:3306/testdb'
+    }
+
 # 数据库配置
 DATABASE_CONFIG: dict = {
-    'connections': {
-        # Dict format for connection
-        'default': 'mysql://root:123456@127.0.0.1:3306/testdb'
-    },
+    'connections': DATABASE_CONNECTS,
     'apps': {
         'models': {
             # 设置key值“default”的数据库连接
             'default_connection': 'default',
             'models': [
-                'apps.'
+                'apps.user.model',
+                'auth.casbin_tortoise_adapter'
             ]
         }
     }
 }
+
+# db_router.py
+class Router:
+    def db_for_read(self, model: Type[Model]):
+        # 在模型定义的 Meta 中定义 default_connection 对应的数据库字符串即可
+        if model._meta.default_connection:
+            return model._meta.default_connection
+        return "default"
+
+    def db_for_write(self, model: Type[Model]):
+        if model._meta.default_connection:
+            return model._meta.default_connection
+        return "default"
 ```
 
 ## 运行
@@ -124,3 +150,4 @@ pipenv shell
 # 运行服务器
 python run.py
 ```
+

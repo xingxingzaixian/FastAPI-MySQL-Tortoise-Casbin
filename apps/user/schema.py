@@ -6,17 +6,17 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, AnyHttpUrl, Field
 
 
-class Token(BaseModel):
-    access_token: str = Field(..., description='Token值')
-    token_type: str = Field(..., description='Token类型')
-
-
 # Shared properties
 class UserBase(BaseModel):
     username: str = Field(..., description='用户名')
     nickname: str = Field(None, description='用户昵称')
     email: EmailStr = Field(None, description='邮箱')
     mobile: str = Field(None, description='手机号')
+
+
+class Token(BaseModel):
+    access_token: str = Field(..., description='Token值')
+    token_type: str = Field(..., description='Token类型')
 
 
 # 创建账号需要验证的条件
