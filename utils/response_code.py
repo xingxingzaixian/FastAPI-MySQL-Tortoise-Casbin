@@ -1,5 +1,5 @@
 from typing import Generic, TypeVar, Optional
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pydantic.generics import GenericModel
 
 Data = TypeVar('Data')
@@ -18,10 +18,13 @@ class ResultResponse(GenericModel, Generic[Data]):
     """
     code: int = Field(default=200, description='返回码')
     message: str = Field(default='请求成功', description='消息内容')
-    data: Optional[Data]
+    result: Optional[Data]
 
 
 class HttpStatus:
+    # 请求正常
+    HTTP_200_OK = 200
+
     # 用户登录异常
     HTTP_418_AUTH_EXCEPT = 418
 
@@ -33,6 +36,9 @@ class HttpStatus:
 
     # 内部参数校验失败
     HTTP_421_INNER_PARAM_EXCEPT = 421
+
+    # 角色不存在
+    HTTP_422_ROLE_NOT_EXIST = 422
 
     # 请求参数格式错误
     HTTP_422_QUERY_PARAM_EXCEPT = 422

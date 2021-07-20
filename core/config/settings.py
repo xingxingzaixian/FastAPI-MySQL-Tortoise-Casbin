@@ -1,12 +1,12 @@
 import os
-from typing import Optional
+from typing import Optional, Dict
 
 from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
     # 开发模式配置
-    DEBUG: bool = False
+    DEBUG: bool = os.getenv('DEBUG')
 
     # 项目文档
     TITLE: str = "FastAPI+MySQL+Tortoise-orm项目生成"
@@ -28,30 +28,26 @@ class Settings(BaseSettings):
     SECRET_KEY: str = 'aeq)s(*&(&)()WEQasd8**&^9asda_asdasd*&*&^+_sda'
 
     # 项目根路径
-    BASE_PATH: str = os.path.dirname(os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__))))
+    BASE_PATH: str = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     # 权限控制配置
-    CASBIN_MODEL_PATH: str = os.path.join(BASE_PATH, 'core/config/rbac_model.conf')
+    CASBIN_MODEL_PATH: str = os.path.join(BASE_PATH,
+                                          'core/config/rbac_model.conf')
 
     # 超级管理员
     SUPER_USER: str = 'super'
 
-    DATABASE_CONNECTS = {
-        'default': 'mysql://root:123456@127.0.0.1:3306/testdb'
-    }
+    DATABASE_CONNECTS: Dict = {'default': os.getenv('DATABASE')}
 
     # 数据库配置
-    DATABASE_CONFIG: dict = {
+    DATABASE_CONFIG: Dict = {
         'connections': DATABASE_CONNECTS,
         'apps': {
             'models': {
                 # 设置key值“default”的数据库连接
                 'default_connection': 'default',
-                'models': [
-                    'apps.user.model',
-                    'auth.casbin_tortoise_adapter'
-                ]
+                'models': ['apps.user.model', 'auth.casbin_tortoise_adapter']
             }
         },
         "routers": ["db_router.Router"],
@@ -60,10 +56,13 @@ class Settings(BaseSettings):
     }
 
     # 不需要登录认证的 API
-    NO_VERIFY_URL = {
+    NO_VERIFY_URL: Dict = {
         "/": "eq",  # 根目录
         "openapi": "in",  # 开发 API
-        "/user/login": "eq",  # 登录
-        "/user/register": "eq",  # 注册
-        "ws": "in"  # ws 服务不需要登录
+        "/user/login": "in",  # 登录
+        "/user/register": "in",  # 注册
+        "/ws/": "in"  # ws 服务不需要登录
     }
+
+
+settings = Settings()

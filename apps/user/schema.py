@@ -1,17 +1,9 @@
 """
 请求参数模型
 """
-from typing import Optional
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel, EmailStr, AnyHttpUrl, Field
-
-
-# Shared properties
-class UserBase(BaseModel):
-    username: str = Field(..., description='用户名')
-    nickname: str = Field(None, description='用户昵称')
-    email: EmailStr = Field(None, description='邮箱')
-    mobile: str = Field(None, description='手机号')
+from .model import UserBase
 
 
 class Token(BaseModel):
@@ -21,9 +13,7 @@ class Token(BaseModel):
 
 # 创建账号需要验证的条件
 class UserCreate(UserBase):
-    password: str = Field(..., description='密码')
-    avatar: AnyHttpUrl = Field(None, description='头像')
-    role: str = Field(default='guest', description='角色，默认Guest')
+    confirm: str = Field(..., description='确认密码')
 
     class Config:
         """
@@ -36,16 +26,7 @@ class UserCreate(UserBase):
                 'email': 'guest@example.com',
                 'mobile': '10086',
                 'password': '123456',
-                'avatar': 'https://img2.woyaogexing.com/2021/05/03/dfcfaaffa8ed4e1a819eba8c10b856d4!400x400.jpeg',
-                'role': 'guest'
+                'confirm': '123456',
+                'avatar': 'https://img2.woyaogexing.com/2021/05/03/dfcfaaffa8ed4e1a819eba8c10b856d4!400x400.jpeg'
             }
         }
-
-# 返回用户信息
-class UserOut(UserBase):
-    pass
-
-
-# Properties to receive via API on update
-class UserUpdate(UserBase):
-    password: str = Field(None, description='修改的密码')

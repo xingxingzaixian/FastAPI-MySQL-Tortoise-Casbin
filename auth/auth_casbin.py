@@ -2,7 +2,6 @@ import asyncio
 
 import casbin
 from fastapi import Request
-from asgiref.sync import async_to_sync, sync_to_async
 
 from core.config import settings
 from auth import casbin_tortoise_adapter
@@ -35,25 +34,25 @@ class Authority:
         :param request:
         :return:
         """
-
-        # 超级用户拥有所有权限
-        role = request.state.user.role
-        if settings.SUPER_USER and role == settings.SUPER_USER:
-            return
-
         model, act = self.policy.split(',')
         e = await get_casbin()
-        if not e.enforce(role, model, act):
+        roles = e.get_roles_for_user(request.state.user.username)
+
+        # 超级用户拥有所有权限
+        if settings.SUPER_USER and settings.SUPER_USER in roles:
+            return
+
+        if not e.enforce(request.state.user.username, model, act):
             raise AuthenticationError(err_desc=f'Permission denied: [{self.policy}]')
 
 
 async def check_authority(policy):
     """
     进行权限认证
-    :param policy: 字符串，以 role,model,act拼接而成，例如"admin,auth,add"
+    :param policy: 字符串，以 user,model,act拼接而成，例如"user,auth,add"
     :return:
     """
-    role, model, act = policy.split(',')
+    user, model, act = policy.split(',')
     e = await get_casbin()
-    if not e.enforce(role, model, act):
+    if not e.enforce(user, model, act):
         raise AuthenticationError(err_desc=f'Permission denied: [{policy}]')

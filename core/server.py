@@ -1,7 +1,7 @@
 import traceback
 
-from fastapi import FastAPI, Request, Depends, status
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi import FastAPI, Request, Depends
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError, ValidationError
 from tortoise.contrib.fastapi import register_tortoise
@@ -88,7 +88,7 @@ def register_exception(app: FastAPI) -> None:
 
     # 自定义异常 捕获
     @app.exception_handler(custom_exc.TokenExpired)
-    async def user_not_found_exception_handler(request: Request, exc: custom_exc.TokenExpired):
+    async def token_expire_exception_handler(request: Request, exc: custom_exc.TokenExpired):
         """
         token过期
         :param request:
@@ -100,7 +100,7 @@ def register_exception(app: FastAPI) -> None:
         return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_420_TOKEN_EXCEPT, message='Token 已过期，请重新登录').dict())
 
     @app.exception_handler(custom_exc.TokenAuthError)
-    async def user_token_exception_handler(request: Request, exc: custom_exc.TokenAuthError):
+    async def token_auth_exception_handler(request: Request, exc: custom_exc.TokenAuthError):
         """
         用户token异常
         :param request:
@@ -111,7 +111,7 @@ def register_exception(app: FastAPI) -> None:
         return JSONResponse(content=ResultResponse[str](code=HttpStatus.HTTP_418_AUTH_EXCEPT, message='用户认证异常，请重新登录').dict())
 
     @app.exception_handler(custom_exc.AuthenticationError)
-    async def user_not_found_exception_handler(request: Request, exc: custom_exc.AuthenticationError):
+    async def authentication_exception_handler(request: Request, exc: custom_exc.AuthenticationError):
         """
         用户权限不足
         :param request:

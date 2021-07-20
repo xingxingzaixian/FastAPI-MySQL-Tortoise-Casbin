@@ -4,11 +4,8 @@
 @create: 2021/4/23
 @description: 基础模型
 """
-from typing import Any
-
 from tortoise import fields
 from tortoise.models import Model
-from pydantic import BaseModel, Field
 
 
 class TimestampMixin:

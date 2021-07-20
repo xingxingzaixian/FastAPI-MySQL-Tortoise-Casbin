@@ -82,7 +82,7 @@ await check_authority(f'{request.state.user.username},auth,add')
 ```
 
 ## 配置
-配置文件：core/config/development_config.py 和 production_config.py
+core/config/settings.py 中是通用配置，development_config.py 和 production_config.py 中配置开发环境和发布环境的配置项
 
 - 修改 API 文档默认地址
 

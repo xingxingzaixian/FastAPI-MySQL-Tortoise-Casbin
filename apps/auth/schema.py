@@ -9,8 +9,8 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-# 创建API
-class AuthCreate(BaseModel):
+# 角色权限
+class RolePerm(BaseModel):
     role: str = Field(..., description='角色')
     model: str = Field(..., description='模块')
     act: str = Field(..., description='权限行为')
@@ -28,5 +28,37 @@ class AuthCreate(BaseModel):
         }
 
 
-class AuthOut(BaseModel):
-    auth: str = Field(..., description='权限字符串')
+# 用户权限配置
+class UserPerm(BaseModel):
+    user: str = Field(..., description='用户名')
+    model: str = Field(..., description='模块')
+    act: str = Field(..., description='权限行为')
+
+    class Config:
+        """
+        schema_extra中设置参数的例子，在API文档中可以看到
+        """
+        schema_extra = {
+            'example': {
+                'user': 'zhangsan',
+                'model': 'user',
+                'act': 'add'
+            }
+        }
+
+
+# 用户角色配置
+class UserRole(BaseModel):
+    user: str = Field(..., description='用户名')
+    role: str = Field(..., description='角色')
+
+    class Config:
+        """
+        schema_extra中设置参数的例子，在API文档中可以看到
+        """
+        schema_extra = {
+            'example': {
+                'user': 'zhangsan',
+                'role': 'guest'
+            }
+        }

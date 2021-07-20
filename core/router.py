@@ -6,7 +6,7 @@ from apps.auth import router as auth_router
 from apps.websocket import router as websocket_router
 from core.config import settings
 
-api_router = APIRouter()
+api_router = APIRouter(prefix='/api')
 
 
 @api_router.get('/', include_in_schema=False)
