@@ -36,10 +36,9 @@ class Authority:
         """
         model, act = self.policy.split(',')
         e = await get_casbin()
-        roles = e.get_roles_for_user(request.state.user.username)
 
         # 超级用户拥有所有权限
-        if settings.SUPER_USER and settings.SUPER_USER in roles:
+        if request.state.user.is_super:
             return
 
         if not e.enforce(request.state.user.username, model, act):

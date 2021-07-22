@@ -23,6 +23,7 @@ class TblRole(TimestampMixin, AbstractBaseModel):
 class TblUser(TimestampMixin, AbstractBaseModel):
     username = fields.CharField(max_length=64, unique=True)
     nickname = fields.CharField(max_length=128, null=True)
+    is_super = fields.SmallIntField(default=0)
     mobile = fields.CharField(max_length=15, null=True)
     email = fields.CharField(max_length=64, unique=True, null=True)
     password = fields.CharField(max_length=128, null=False)
@@ -34,7 +35,7 @@ class TblUser(TimestampMixin, AbstractBaseModel):
         ordering = ["-created_at", "id"]
 
     class PydanticMeta:
-        exclude = ["created_at", "modified_at", "id", "password", 'is_delete']
+        exclude = ["created_at", "modified_at", "id", 'is_delete']
 
 
 UserBase = pydantic_model_creator(TblUser, name="UserBase")

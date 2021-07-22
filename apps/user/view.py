@@ -15,6 +15,8 @@ from utils.utils import verify_password
 from auth.auth import create_access_token
 from auth.auth_casbin import Authority, get_casbin
 
+from apps import user
+
 router = APIRouter()
 
 
@@ -62,14 +64,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
              response_model=ResultResponse[model.UserOut])
 async def register(user: schema.UserCreate):
     user = await crud.create_user(user)
-    return ResultResponse[schema.UserOut](result=user)
+    return ResultResponse[model.UserOut](result=user)
 
 
 @router.get("/info",
             summary="获取当前用户信息",
             name="获取当前用户信息",
-            response_model=ResultResponse[model.UserOut],
-            dependencies=[Depends(Authority('user,check'))])
+            response_model=ResultResponse[model.UserOut])
 async def get_user_info(request: Request):
     return ResultResponse[model.UserOut](result=request.state.user)
 
@@ -79,7 +80,8 @@ async def get_user_info(request: Request):
             description='获取用户列表',
             response_model=ResultResponse[List[model.UserOut]])
 async def get_user_list():
-    return await get_user_list()
+    user_list = await crud.get_user_list()
+    return ResultResponse[List[model.UserOut]](result=user_list)
 
 
 @router.post('/add/role',

@@ -28,14 +28,14 @@ async def get_user_by_name(username: str) -> Union[TblUser, Any]:
 
 
 async def create_user(user_data: schema.UserCreate) -> TblUser:
-    user = TblUser(**user_data.dict(exclude=['confirm']))
+    user = TblUser(**user_data.dict(exclude={'confirm'}))
     user.password = get_password_hash(user_data.password)
     await user.save()
     return user
 
 
 async def create_role(role_data: RoleCreate) -> TblRole:
-    role = TblRole(**role_data.dict)
+    role = TblRole(**role_data.dict())
     await role.save()
     return role
 
@@ -49,4 +49,4 @@ async def get_role_by_name(role_name: str) -> Union[TblRole, Any]:
 
 
 async def get_user_list() -> List[TblUser]:
-    return TblUser.all()
+    return await TblUser.all()
