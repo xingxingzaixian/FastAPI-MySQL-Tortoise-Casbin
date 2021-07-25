@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends, status, HTTPException, Request
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
 from . import crud, schema, model
-from core.config import settings
-from utils.response_code import ResultResponse
+from core import settings
+from utils.response_code import ResultResponse, HttpStatus
 from utils import logger
 from utils.utils import verify_password
 from auth.auth import create_access_token
@@ -90,6 +90,9 @@ async def get_user_list():
              response_model=ResultResponse[model.RoleCreate],
              dependencies=[Depends(Authority('role,add'))])
 async def add_role(role: model.RoleOut):
+    if await crud.has_role(role.name):
+        return ResultResponse[str](code=HttpStatus.HTTP_601_ROLE_EXIST, message='角色已存在')
+
     role = crud.create_role(role)
     return ResultResponse[model.RoleOut](result=role)
 
@@ -100,13 +103,8 @@ async def add_role(role: model.RoleOut):
              response_model=ResultResponse[str],
              dependencies=[Depends(Authority('role,del'))])
 async def del_role(request: Request, role_name: str):
-    role = await crud.get_role_by_name(role_name)
-    if not role:
-        return ResultResponse[str](message='角色已删除')
-    await role.delete()
-
-    # 删除 casbin 的角色权限
-    e = await get_casbin()
-    e.delete_role_for_user(request.state.user.username, role.name)
+    result = await crud.delete_role_by_name(role_name)
+    if not result:
+        return ResultResponse[str](code=HttpStatus.HTTP_600_ROLE_NOT_EXIST, message='角色不存在')
 
     return ResultResponse[str](message='角色已删除')

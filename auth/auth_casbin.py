@@ -3,7 +3,7 @@ import asyncio
 import casbin
 from fastapi import Request
 
-from core.config import settings
+from core import settings
 from auth import casbin_tortoise_adapter
 from utils.custom_exc import AuthenticationError
 

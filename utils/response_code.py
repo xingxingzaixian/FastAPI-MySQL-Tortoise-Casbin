@@ -48,3 +48,9 @@ class HttpStatus:
 
     # 服务端错误
     HTTP_500_INTERNAL_SERVER_ERROR = 500
+
+    # 角色不存在
+    HTTP_600_ROLE_NOT_EXIST = 600
+
+    # 角色不存在
+    HTTP_601_ROLE_EXIST = 601

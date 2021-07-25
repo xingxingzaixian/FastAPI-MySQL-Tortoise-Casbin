@@ -5,7 +5,7 @@ from fastapi import Request, Header
 from starlette.authentication import AuthenticationError
 from pydantic import ValidationError
 
-from core.config import settings
+from core import settings
 from utils import custom_exc
 from apps.user.crud import get_user_by_name
 

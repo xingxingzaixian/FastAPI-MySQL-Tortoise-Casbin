@@ -9,10 +9,9 @@ from typing import List, Union, Any
 from tortoise.exceptions import DoesNotExist
 
 from . import schema
+from auth.auth_casbin import get_casbin
 from .model import TblUser, RoleCreate, TblRole
 from utils.utils import get_password_hash
-
-from apps import user
 
 
 async def get_user_by_name(username: str) -> Union[TblUser, Any]:
@@ -21,7 +20,7 @@ async def get_user_by_name(username: str) -> Union[TblUser, Any]:
     :return:
     """
     try:
-        user = await TblUser.get(username=username)
+        user: TblUser = await TblUser.get(username=username)
     except DoesNotExist as exc:
         return None
     return user
@@ -41,11 +40,41 @@ async def create_role(role_data: RoleCreate) -> TblRole:
 
 
 async def get_role_by_name(role_name: str) -> Union[TblRole, Any]:
+    """
+    获取角色信息
+    """
     try:
-        role = TblRole.get(name=role_name)
+        role: TblRole = TblRole.get(name=role_name)
     except DoesNotExist as exec:
         return None
     return role
+
+
+async def delete_role_by_name(role_name: str) -> bool:
+    """
+    删除角色信息，同时删除 casbin 中角色信息
+    """
+    role: TblRole = await get_role_by_name(role_name)
+    if role:
+        role.is_delete = 1
+        await role.save()
+
+        # 删除 casbin 的角色权限
+        e = await get_casbin()
+        e.delete_role(role_name)
+
+        return True
+    return False
+
+
+async def has_role(role_name: str) -> bool:
+    """
+    判断是否包含角色信息
+    """
+    role: TblRole = await get_role_by_name(role_name)
+    if role and not role.is_delete:
+        return False
+    return True
 
 
 async def get_user_list() -> List[TblUser]:

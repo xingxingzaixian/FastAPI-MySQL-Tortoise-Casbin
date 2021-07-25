@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 
 from jose import jwt
-from core.config import settings
+from core import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

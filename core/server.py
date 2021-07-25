@@ -11,7 +11,7 @@ from .middleware import register_hook
 from utils import custom_exc
 from utils.response_code import ResultResponse, HttpStatus
 from utils.logger import logger
-from core.config import settings
+from core import settings
 from auth.auth import jwt_authentication
 
 

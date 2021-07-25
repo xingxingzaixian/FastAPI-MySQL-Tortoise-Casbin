@@ -1,12 +1,13 @@
 import os
 from typing import Optional, Dict
+from pathlib import Path
 
 from pydantic import BaseSettings
 
 
-class Settings(BaseSettings):
+class APISettings(BaseSettings):
     # 开发模式配置
-    DEBUG: bool = os.getenv('DEBUG')
+    DEBUG: bool = os.environ.get('DEBUG', True)
 
     # 项目文档
     TITLE: str = "FastAPI+MySQL+Tortoise-orm项目生成"
@@ -22,27 +23,25 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 
     # 生成token的加密算法
-    ALGORITHM: str = "HS256"
+    ALGORITHM: str = os.environ.get('ALGORITHM', 'ALGORITHM')
 
     # 生产环境保管好 SECRET_KEY
-    SECRET_KEY: str = 'aeq)s(*&(&)()WEQasd8**&^9asda_asdasd*&*&^+_sda'
+    SECRET_KEY: str = os.environ.get('SECRET_KEY')
 
     # 项目根路径
-    BASE_PATH: str = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    BASE_PATH: Path = Path(__file__).resolve().parent.parent
 
     # 权限控制配置
-    CASBIN_MODEL_PATH: str = os.path.join(BASE_PATH,
-                                          'core/config/rbac_model.conf')
+    CASBIN_MODEL_PATH: Path = BASE_PATH.joinpath('config/rbac_model.conf')
 
-    # 超级管理员
-    SUPER_USER: str = 'super'
-
-    DATABASE_CONNECTS: Dict = {'default': os.getenv('DATABASE')}
+    # 数据库连接配置
+    DATABASE_URI = os.environ.get('DATABASE_URI', 'mysql://root:123456@127.0.0.1:3306/testdb')
 
     # 数据库配置
     DATABASE_CONFIG: Dict = {
-        'connections': DATABASE_CONNECTS,
+        'connections': {
+            'default': DATABASE_URI
+        },
         'apps': {
             'models': {
                 # 设置key值“default”的数据库连接
@@ -65,4 +64,4 @@ class Settings(BaseSettings):
     }
 
 
-settings = Settings()
+settings = APISettings()
