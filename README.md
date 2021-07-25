@@ -1,7 +1,7 @@
 # 更新记录
 ### 2021-07-25
 1. 使用.env配置不同环境
-2. 增加 Casbin 权限配置接口，具体文档：[Casbin使用](http://101.34.19.90:10086/project-1/doc-8/)
+2. 增加 Casbin 权限配置接口，具体文档：[Casbin使用](http://101.34.19.90:10086/project-2/doc-10/)
 
 **注意：** WebSocket 不支持 Session 共享，所以如果在项目使用了 WebSocket 功能，则不能使用多进程或者分布式部署，WebSocket 的分布式部署需要借助其他的服务
 
