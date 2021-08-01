@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "fastapi-mysql-tortoise-casbin"
+version = "0.1.0"
+description = ""
+authors = ["xingxingzaixian <beixia1989@163.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+fastapi = "^0.68.0"
+uvicorn = {extras = ["standard"], version = "^0.14.0"}
+tortoise-orm = "^0.17.6"
+aiomysql = "^0.0.21"
+loguru = "^0.5.3"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+casbin = "^1.4.0"
+email-validator = "^1.1.3"
+python-multipart = "^0.0.5"
+bcrypt = "^3.2.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
