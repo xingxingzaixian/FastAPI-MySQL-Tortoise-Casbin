@@ -14,7 +14,7 @@ async def get_casbin() -> casbin.Enforcer:
     :return:
     """
     adapter = casbin_tortoise_adapter.Adapter()
-    e = casbin.Enforcer(settings.CASBIN_MODEL_PATH, adapter)
+    e = casbin.Enforcer(str(settings.CASBIN_MODEL_PATH), adapter)
 
     # 加上sleep是为了主动切换协程
     await asyncio.sleep(0.01)

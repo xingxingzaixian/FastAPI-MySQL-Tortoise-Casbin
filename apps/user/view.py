@@ -93,7 +93,7 @@ async def add_role(role: model.RoleOut):
     if await crud.has_role(role.name):
         return ResultResponse[str](code=HttpStatus.HTTP_601_ROLE_EXIST, message='角色已存在')
 
-    role = crud.create_role(role)
+    role = await crud.create_role(role)
     return ResultResponse[model.RoleOut](result=role)
 
 

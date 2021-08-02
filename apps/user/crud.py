@@ -44,7 +44,7 @@ async def get_role_by_name(role_name: str) -> Union[TblRole, Any]:
     获取角色信息
     """
     try:
-        role: TblRole = TblRole.get(name=role_name)
+        role: TblRole = await TblRole.get(name=role_name)
     except DoesNotExist as exec:
         return None
     return role
@@ -73,8 +73,8 @@ async def has_role(role_name: str) -> bool:
     """
     role: TblRole = await get_role_by_name(role_name)
     if role and not role.is_delete:
-        return False
-    return True
+        return True
+    return False
 
 
 async def get_user_list() -> List[TblUser]:
