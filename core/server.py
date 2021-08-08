@@ -12,7 +12,7 @@ from utils import custom_exc
 from utils.response_code import ResultResponse, HttpStatus
 from utils.logger import logger
 from core import settings
-from auth.auth import jwt_authentication
+from auth.auth import OAuth2CustomJwt
 
 
 def create_app() -> FastAPI:
@@ -26,7 +26,7 @@ def create_app() -> FastAPI:
         description=settings.DESCRIPTION,
         docs_url=settings.DOCS_URL,
         redoc_url=settings.REDOC_URL,
-        dependencies=[Depends(jwt_authentication)]
+        dependencies=[Depends(OAuth2CustomJwt(tokenUrl="/user/login"))]
     )
 
     # 跨域设置

@@ -21,7 +21,8 @@ router = APIRouter()
 
 @router.post("/login",
              summary="用户登录认证",
-             response_model=ResultResponse[schema.Token])
+            response_model=schema.Token
+)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
     通过用户名和密码登录获取 token 值
@@ -51,10 +52,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(subject=user.username,
                                        expires_delta=access_token_expires)
 
-    return ResultResponse[schema.Token](result={
-        'access_token': access_token,
-        'token_type': 'bearer'
-    })
+    # return ResultResponse[schema.Token](result={
+    #     'access_token': access_token,
+    #     'token_type': 'bearer'
+    # })
+    return {'access_token': access_token, 'token_type': 'bearer'}
 
 
 @router.post('/register',
