@@ -46,7 +46,7 @@ class APISettings(BaseSettings):
             'models': {
                 # 设置key值“default”的数据库连接
                 'default_connection': 'default',
-                'models': ['apps.user.model', 'auth.casbin_tortoise_adapter']
+                'models': ['apps.user.model', 'casbin_tortoise_adapter']
             }
         },
         "routers": ["db_router.Router"],
