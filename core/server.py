@@ -175,8 +175,6 @@ def register_init(app: FastAPI) -> None:
             add_exception_handlers=True,
         )
         logger.info("start server and register_tortoise")
-        # 连接redis
-        # redis_client.init_redis_connect()
 
         # 初始化 apscheduler
         # schedule.init_scheduler()

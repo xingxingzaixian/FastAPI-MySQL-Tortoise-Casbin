@@ -1,24 +1,36 @@
-import asyncio
-
 import casbin
+import casbin_tortoise_adapter
 from fastapi import Request
+from typing import Any
 
 from core import settings
-from auth import casbin_tortoise_adapter
 from utils.custom_exc import AuthenticationError
+from utils.utils import Singleton
 
 
-async def get_casbin() -> casbin.Enforcer:
-    """
-    获取 casbin 权限认证对象
-    :return:
-    """
-    adapter = casbin_tortoise_adapter.Adapter()
-    e = casbin.Enforcer(str(settings.CASBIN_MODEL_PATH), adapter)
+class TortoiseCasbin(metaclass=Singleton):
+    def __init__(self, model: str) -> None:
+        print('*'*20, '初始化 casbin')
+        adapter = casbin_tortoise_adapter.TortoiseAdapter()
+        self.enforce = casbin.Enforcer(str(model), adapter)
 
-    # 加上sleep是为了主动切换协程
-    await asyncio.sleep(0.01)
-    return e
+    async def has_permission(self, user: str, model: str, act: str) -> bool:
+        """
+        判断是否拥有权限
+        """
+        return self.enforce.enforce(user, model, act)
+
+    async def add_permission_for_role(self, role: str, model: str, act: str):
+        """
+        添加角色权限
+        """
+        return await self.enforce.add_policy(role, model, act)
+
+    async def remove_permission_for_role(self, role: str, model: str, act: str):
+        return await self.enforce.remove_policy(role, model, act)
+
+    def __getattr__(self, attr: str) -> Any:
+        return getattr(self.enforce, attr)
 
 
 class Authority:
@@ -41,7 +53,7 @@ class Authority:
         if request.state.user.is_super:
             return
 
-        if not e.enforce(request.state.user.username, model, act):
+        if not await e.has_permission(request.state.user.username, model, act):
             raise AuthenticationError(err_desc=f'Permission denied: [{self.policy}]')
 
 
@@ -53,5 +65,17 @@ async def check_authority(policy):
     """
     user, model, act = policy.split(',')
     e = await get_casbin()
-    if not e.enforce(user, model, act):
+    if not await e.has_permission(user, model, act):
         raise AuthenticationError(err_desc=f'Permission denied: [{policy}]')
+
+
+async def get_casbin() -> TortoiseCasbin:
+    """
+    获取 casbin 权限认证对象，初始化时要加载一次权限模型信息
+    :return:
+    """
+    tor_casbin = TortoiseCasbin(settings.CASBIN_MODEL_PATH)
+    if not hasattr(tor_casbin, 'load'):
+        setattr(tor_casbin, 'load', True)
+        await tor_casbin.load_policy()
+    return tor_casbin

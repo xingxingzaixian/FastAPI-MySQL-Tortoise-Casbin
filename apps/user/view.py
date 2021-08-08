@@ -13,9 +13,8 @@ from utils.response_code import ResultResponse, HttpStatus
 from utils import logger
 from utils.utils import verify_password
 from auth.auth import create_access_token
-from auth.auth_casbin import Authority, get_casbin
+from auth.auth_casbin import Authority
 
-from apps import user
 
 router = APIRouter()
 
