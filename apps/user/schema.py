@@ -1,7 +1,7 @@
 """
 请求参数模型
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from .model import UserBase
 
@@ -14,6 +14,15 @@ class Token(BaseModel):
 # 创建账号需要验证的条件
 class UserCreate(UserBase):
     confirm: str = Field(..., description='确认密码')
+
+    @validator('confirm')
+    def validate_confirm(cls, value, values, config, field):
+        """
+        验证密码是否一致
+        """
+        if value != values.get('password'):
+            raise ValueError('passwords do not match')
+        return value
 
     class Config:
         """
