@@ -1,4 +1,12 @@
 # 更新记录
+### 2021-08-08
+1. 使用 asynccabin 库操作 casbin 权限处理模块
+注意这个库的源文件与casbin库的源文件目录相同，因此在安装的时候会出现覆盖的情况，如果安装完后有异常，可以使用`pip uninstall asynccasbin`卸载这个库，然后重新安装即可
+2. 修复权限处理模块异常
+3. 增加了 OpenAPI 的统一认证功能，为了适配此功能，登录模块的返回值未采用统一的返回格式
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gt9nowgcofj314c0mrjtt.jpg)
+
 ### 2021-07-25
 1. 使用.env配置不同环境
 2. 增加 Casbin 权限配置接口，具体文档：[Casbin使用](http://101.34.19.90:10086/project-2/doc-10/)
@@ -15,14 +23,12 @@
 # FastAPI+MySQL+Tortoise-orm项目模板
 ## 简介
 使用FastAPI + MySql + Tortoise-orm 作为主要数据库操作,项目结构参考:
-- [CoderCharm
-/
-fastapi-mysql-generator](https://github.com/CoderCharm/fastapi-mysql-generator)
+- [fastapi-mysql-generator](https://github.com/CoderCharm/fastapi-mysql-generator)
 - [FastAPI-demo](https://github.com/FutureSenzhong/FastAPI-demo)
 
 ## 功能
 - JWT token 认证。
-- 使用 Tortoise-orm models(MySql).
+- 使用 Tortoise-orm models(MySQL).
 - 基于 casbin 的权限验证
 - loguru 日志模块使用
 - 增加 WebSocket 功能
@@ -32,25 +38,47 @@ fastapi-mysql-generator](https://github.com/CoderCharm/fastapi-mysql-generator)
 ## 权限控制
 - 登录、注册及路由中含有openapi的接口不进行登录和权限认证
 ```python
-async def jwt_authentication(
-        request: Request,
-        x_token: str = Header(
-            None,
-            title='登录Token',
-            description='登录、注册及开放API不需要此参数'
-        )
-):
-    """
-            除了开放API、登录、注册以外，其他均需要认证
-            :param request:
-            :return:
-            """
-    for url, op in settings.NO_VERIFY_URL.items():
-        if op == 'eq' and url == request.url.path.lower():
-            return None
-        elif op == 'in' and url in request.url.path.lower():
-            return None
-    ....
+# 重载了 FastAPI.OAuth2 模块进行登录认证，此模块可以在 API 文档界面进行统一登录认证
+# 为了适配这个功能登录接口的返回数据未采用统一格式，使用的时候需要注意
+class OAuth2CustomJwt(OAuth2):
+    ......
+    async def __call__(self, request: Request) -> Optional[str]:
+        """
+        除了开放API、登录、注册、WebSocket接口外，其他接口均需要登录验证
+        """
+        for url, op in settings.NO_VERIFY_URL.items():
+            if op == 'eq' and url == request.url.path.lower():
+                return None
+            elif op == 'in' and url in request.url.path.lower():
+                return None
+
+        authorization: str = request.headers.get("Authorization")
+        scheme, param = get_authorization_scheme_param(authorization)
+        if not authorization or scheme.lower() != "bearer":
+            if self.auto_error:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated"
+                )
+            else:
+                return None
+
+        try:
+            playload = jwt.decode(
+                param,
+                settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            )
+        except jwt.ExpiredSignatureError:
+            raise custom_exc.TokenExpired()
+        except (jwt.JWTError, ValidationError, AttributeError):
+            raise custom_exc.TokenAuthError()
+
+        username = playload.get('username')
+        user = await get_user_by_name(username=username)
+        if not user:
+            raise AuthenticationError("认证失败")
+
+        """在 Request 对象中设置用户对象，这样在其他地方就能通过 request.state.user 获取到当前用户了"""
+        request.state.user = user
 ```
 - 全局登录认证（除以上接口外，其余接口均进行登录认证）
 
@@ -62,13 +90,18 @@ app = FastAPI(
         description=settings.DESCRIPTION,
         docs_url=settings.DOCS_URL,
         redoc_url=settings.REDOC_URL,
-        dependencies=[Depends(jwt_authentication)]
+        dependencies=[Depends(OAuth2CustomJwt(tokenUrl="/user/login"))]
     )
 ```
-全局进行 Depends(jwt_authentication) 依赖注入
+全局进行 Depends(OAuth2CustomJwt(tokenUrl="/user/login")) 依赖注入
+
 - 接口权限认证
 
-首先通过 auth/add 和 auth/del 接口进行权限配置
+首先通过以下接口进行权限配置
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gt9npof3euj31480brq4v.jpg)
+
+在接口上添加 Depends(Authority('user,check')) 依赖注入来判断权限
 ```python
 @router.get(
     "/info",
@@ -79,7 +112,7 @@ app = FastAPI(
     dependencies=[Depends(Authority('user,check'))]
 )
 ```
-在接口上添加 Depends(Authority('user,check')) 依赖注入来判断权限
+
 - 操作权限认证
 
 在接口中进行特殊权限认证，只要使用check_authority函数判断即可，如果无权限会抛出异常
@@ -88,7 +121,7 @@ await check_authority(f'{request.state.user.username},auth,add')
 ```
 
 ## 配置
-core/config/settings.py 中是通用配置，development_config.py 和 production_config.py 中配置开发环境和发布环境的配置项
+在 settings.py 中是进行项目配置，config/.env 文件中通过环境变量进行发布环境配置
 
 - 修改 API 文档默认地址
 
@@ -104,9 +137,25 @@ REDOC_URL: Optional[str] = "/openapi/redoc"
 
 - 超级管理员
 
-设置用户角色为 super 的用户为超级管理员
+设置用户的 is_super = 1，就表示超级管理员，超级管理员拥有所有权限，可以跳过权限认证
 ```python
-SUPER_USER: str = 'super'
+class Authority:
+    ......
+    async def __call__(self, request: Request):
+        """
+        超级管理员不需要进行权限认证
+        :param request:
+        :return:
+        """
+        model, act = self.policy.split(',')
+        e = await get_casbin()
+
+        # 超级用户拥有所有权限
+        if request.state.user.is_super:
+            return
+
+        if not await e.has_permission(request.state.user.username, model, act):
+            raise AuthenticationError(err_desc=f'Permission denied: [{self.policy}]')
 ```
 
 ### 多配置数据库
@@ -151,9 +200,6 @@ class Router:
 pipenv install
 
 # 进入虚拟环境
-pipenv shell
-
-# 运行服务器
-python run.py
+pipenv run dev
 ```
 
