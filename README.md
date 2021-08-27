@@ -1,4 +1,7 @@
 # 更新记录
+### 2021-08-27
+1. 删除主分支中 WebSocket 功能，因为 WebSocket 并发部署很麻烦，如果有人需要 WebSocket 功能，请下载 websocket 分支
+
 ### 2021-08-08
 1. 使用 asynccabin 库操作 casbin 权限处理模块
 注意这个库的源文件与casbin库的源文件目录相同，因此在安装的时候会出现覆盖的情况，如果安装完后有异常，可以使用`pip uninstall asynccasbin`卸载这个库，然后重新安装即可
